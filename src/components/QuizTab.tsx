@@ -120,11 +120,21 @@ export const QuizTab: React.FC<QuizTabProps> = ({ speechRate }) => {
               }
 
               return (
-                <button
+                <div
                   key={idx}
-                  onClick={() => handleSelectOption(idx)}
-                  disabled={isAnswered}
-                  className={`w-full text-left p-4 rounded-2xl border transition font-medium text-sm flex items-start justify-between gap-3 active:scale-[0.99] ${btnStyle}`}
+                  role="button"
+                  tabIndex={isAnswered ? -1 : 0}
+                  aria-disabled={isAnswered}
+                  onClick={() => !isAnswered && handleSelectOption(idx)}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && !isAnswered) {
+                      e.preventDefault();
+                      handleSelectOption(idx);
+                    }
+                  }}
+                  className={`w-full text-left p-4 rounded-2xl border transition font-medium text-sm flex items-start justify-between gap-3 select-none ${
+                    !isAnswered ? 'cursor-pointer active:scale-[0.99]' : ''
+                  } ${btnStyle}`}
                 >
                   <div className="flex items-start gap-3 flex-1">
                     <span
@@ -151,13 +161,15 @@ export const QuizTab: React.FC<QuizTabProps> = ({ speechRate }) => {
                   </div>
 
                   <button
+                    type="button"
                     onClick={(e) => handlePlayOption(opt.th, e)}
                     title="အသံထွက် နားထောင်မည်"
-                    className="w-8 h-8 rounded-lg bg-purple-50 hover:bg-[#64137c] text-[#64137c] hover:text-white flex items-center justify-center transition shrink-0 self-center"
+                    aria-label={`အသံထွက် နားထောင်မည်: ${opt.th}`}
+                    className="w-8 h-8 rounded-lg bg-purple-50 hover:bg-[#64137c] text-[#64137c] hover:text-white flex items-center justify-center transition shrink-0 self-center cursor-pointer"
                   >
                     <Volume2 className="w-3.5 h-3.5" />
                   </button>
-                </button>
+                </div>
               );
             })}
           </div>
