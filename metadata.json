@@ -1,0 +1,6 @@
+{
+  "name": "လက်တွေ့အသုံးချ ထိုင်းစကားပြော",
+  "description": "လက်တွေ့အသုံးချ ထိုင်းစကားပြော အခန်း (၁) - အခြေခံ ဝေါဟာရများ၊ နေ့စဉ်သုံးဝါကျများ၊ သဒ္ဒါနှင့် အပြန်အလှန် လေ့ကျင့်ခန်းများ (Practical Thai Speaking App)",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
