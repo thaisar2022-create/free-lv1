@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   body {
     font-family: "Padauk", "Plus Jakarta Sans", sans-serif;
@@ -29,3 +31,52 @@
   background: #c084fc;
 }
 
+/* Dark mode smooth styling */
+.dark body {
+  background-color: #110c1c;
+  color: #f1edfa;
+}
+
+.dark .bg-white {
+  background-color: #1a1429 !important;
+  color: #f1edfa;
+}
+
+.dark .text-slate-900 {
+  color: #f8fafc !important;
+}
+
+.dark .text-slate-800 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+}
+
+.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+.dark .bg-purple-50,
+.dark .bg-purple-50\/40,
+.dark .bg-purple-50\/70 {
+  background-color: #241638 !important;
+}
+
+.dark .border-purple-100,
+.dark .border-purple-100\/90,
+.dark .border-purple-200,
+.dark .border-purple-200\/60 {
+  border-color: #3b2354 !important;
+}
+
+.dark input[type="text"] {
+  background-color: #231936 !important;
+  color: #f1edfa !important;
+  border-color: #492b67 !important;
+}
