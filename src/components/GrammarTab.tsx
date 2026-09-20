@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Volume2, Sparkles, Search, X, ChevronsDown, ChevronsUp, BookOpen } from 'lucide-react';
+import { Volume2, Sparkles, Search, X, ChevronsDown, ChevronsUp } from 'lucide-react';
 import { grammarRules, politeParticles } from '../data/thaiData';
 import { speakThai, subscribeSpeakingState } from '../utils/audio';
 
@@ -115,7 +115,6 @@ export const GrammarTab: React.FC<GrammarTabProps> = ({ speechRate }) => {
     );
   }, [formattedRules, searchQuery]);
 
-  const totalTopics = formattedRules.length;
   const isAllExpanded = expandedId === 'all';
 
   const toggleExpandAll = () => {
@@ -191,16 +190,8 @@ export const GrammarTab: React.FC<GrammarTabProps> = ({ speechRate }) => {
           )}
         </div>
 
-        {/* Action Controls & Total Topics Badge */}
+        {/* Action Controls */}
         <div className="flex items-center gap-2 flex-wrap justify-between md:justify-end">
-          {/* Total Topics Badge */}
-          <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-gray-800 border border-purple-200 dark:border-gray-700 text-xs font-semibold text-purple-900 dark:text-purple-200 shadow-xs flex items-center gap-1.5">
-            <BookOpen className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-            <span>
-              စုစုပေါင်း ခေါင်းစဉ်: <strong className="text-purple-700 dark:text-purple-300">{totalTopics}</strong> ခု
-            </span>
-          </div>
-
           {/* Expand / Collapse All Toggle Button */}
           <button
             type="button"
