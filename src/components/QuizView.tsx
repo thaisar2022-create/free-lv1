@@ -1,246 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Trophy, ArrowRight, RotateCcw } from 'lucide-react';
 import { speakThai } from '../utils/audio';
+import { QUIZ_QUESTIONS, QuizQuestion } from '../data/quiz';
 
-export interface CleanQuizQuestion {
-  id: number;
-  promptLabel: string;
-  thaiWord: string;
-  audioTarget: string;
-  options: string[];
-  correctAnswerIndex: number;
-  phonetic: string;
-  myanmarReading: string;
-  explanation: string;
-}
-
-export const ACTIVE_RECALL_QUIZ_QUESTIONS: CleanQuizQuestion[] = [
-  {
-    id: 1,
-    promptLabel: 'အောက်ပါ ထိုင်းစကားလုံး၏ မြန်မာအဓိပ္ပာယ်ကို ရွေးချယ်ပါ',
-    thaiWord: 'กิน',
-    audioTarget: 'กิน',
-    options: ['သောက်သည်', 'စားသည်', 'သွားသည်', 'ဝယ်သည်'],
-    correctAnswerIndex: 1,
-    phonetic: '/kin/',
-    myanmarReading: 'ကင်(န်)',
-    explanation: "'กิน' (ကင် /kin/) ဆိုသည်မှာ 'စားသည်' ဖြစ်ပြီး 'သောက်သည်' မှာ 'ดื่ม' (ဒိုမ် /dʉ̀ʉm/) ဖြစ်ပါသည်။",
-  },
-  {
-    id: 2,
-    promptLabel: 'အောက်ပါ မြန်မာဝါကျအတွက် မှန်ကန်သော ထိုင်းဝါကျကို ရွေးချယ်ပါ',
-    thaiWord: 'သူ စာအုပ် မဖတ်ဘူး',
-    audioTarget: 'เขาไม่อ่านหนังสือ',
-    options: ['เขา กิน ข้าว', 'เขา ไม่ อ่าน หนังสือ', 'เขา ไป ตลาด', 'เขา มี หนังสือ'],
-    correctAnswerIndex: 1,
-    phonetic: '/kháo mây ʔàan nǎŋ-sʉ̌ʉ/',
-    myanmarReading: 'ခေါဝ် မိုက် အာန် နန်းစို',
-    explanation: 'เขา (သူ) + ไม่ (မ...ဘူး) + อ่าน (ဖတ်) + หนังสือ (စာအုပ်) ဖြစ်ပါသည်။',
-  },
-  {
-    id: 3,
-    promptLabel: 'အမျိုးသားများ ယဉ်ကျေးစွာ ပြောဆိုရာတွင် အဆုံးသတ်၌ သုံးရသော စကားလုံးမှာ?',
-    thaiWord: 'ယဉ်ကျေးစကား (အမျိုးသား)',
-    audioTarget: 'ครับ',
-    options: ['ค่ะ', 'ครับ', 'คะ', 'นะ'],
-    correctAnswerIndex: 1,
-    phonetic: '/khráp/',
-    myanmarReading: 'ခရတ်(ပ်)',
-    explanation: "အမျိုးသားများအတွက် 'ครับ' (ခရတ် /khráp/) ကို သုံးပြီး၊ အမျိုးသမီးများမှာ 'ค่ะ / คะ' ကို သုံးပါသည်။",
-  },
-  {
-    id: 4,
-    promptLabel: "'ဈေး' ကို ထိုင်းဘာသာဖြင့် မည်သို့ခေါ်သနည်း?",
-    thaiWord: 'ဈေး (Market)',
-    audioTarget: 'ตลาด',
-    options: ['ทะเล', 'ตลาด', 'เสื้อ', 'ข้าว'],
-    correctAnswerIndex: 1,
-    phonetic: '/ta-làat/',
-    myanmarReading: 'တလတ်(တ်)',
-    explanation: "ဈေး ကို 'ตลาด' (တလတ် /ta-làat/) ဟု ခေါ်ပြီး၊ ทะเล မှာ ပင်လယ် ဖြစ်ပါသည်။",
-  },
-  {
-    id: 5,
-    promptLabel: "'နားလည်ပါသလား' ဟု မေးလိုလျှင် မည်သို့ပြောရမည်နည်း?",
-    thaiWord: 'နားလည်ပါသလား?',
-    audioTarget: 'เข้าใจไหม',
-    options: ['เข้าใจไหม', 'สบายดีไหม', 'ไปไหน', 'กินข้าวไหม'],
-    correctAnswerIndex: 0,
-    phonetic: '/khâw-jay máy/',
-    myanmarReading: 'ခေါဝ်ကျိုင် မိုင်း',
-    explanation: 'เข้าใจ (နားလည်) + ไหม (လား) = เข้าใจไหม (နားလည်လား) ဖြစ်ပါသည်။',
-  },
-  {
-    id: 6,
-    promptLabel: 'အောက်ပါ ထိုင်းနှုတ်ဆက်စကား၏ မြန်မာအဓိပ္ပာယ်မှာ အဘယ်နည်း?',
-    thaiWord: 'ยินดีที่ได้รู้จัก',
-    audioTarget: 'ยินดีที่ได้รู้จัก',
-    options: ['သွားခွင့်ပြုပါဦး', 'သိကျွမ်းရတာ ဝမ်းသာပါတယ်', 'ကိစ္စမရှိပါဘူး', 'နေကောင်းလား'],
-    correctAnswerIndex: 1,
-    phonetic: '/yin-dii thîi dâay rúu-jàk/',
-    myanmarReading: 'ယင်းဒီး ထီး ဒိုက် ရူးကျက်',
-    explanation: "'ยินดีที่ได้รู้จัก' သည် တစ်ဦးနှင့်တစ်ဦး စတင်သိကျွမ်းရာတွင် သုံးသော 'သိကျွမ်းရတာ ဝမ်းသာပါတယ်' ဖြစ်ပါသည်။",
-  },
-  {
-    id: 7,
-    promptLabel: "တစ်ဖက်လူက ဝမ်းသာကြောင်းပြောလာပါက 'အတူတူပါပဲ' (Likewise) ဟု မည်သို့ပြန်ပြောမည်နည်း?",
-    thaiWord: 'အတူတူပါပဲ (Likewise)',
-    audioTarget: 'เช่นกัน',
-    options: ['ไม่เป็นไร', 'เช่นกัน', 'ขอโทษ', 'ขอบคุณ'],
-    correctAnswerIndex: 1,
-    phonetic: '/chêen-kan/',
-    myanmarReading: 'ချိန်းကန်',
-    explanation: "'เช่นกัน' (ချိန်းကန် /chêen-kan/) သည် 'အတူတူပါပဲ' ဟု အဓိပ္ပာယ်ရပါသည်။",
-  },
-  {
-    id: 8,
-    promptLabel: 'အမျိုးသမီးများ မေးခွန်းမေးရာတွင် အဆုံးသတ်၌ သုံးရသော ယဉ်ကျေးစကားလုံးမှာ?',
-    thaiWord: 'မေးခွန်း အဆုံးသတ် (အမျိုးသမီး)',
-    audioTarget: 'คะ',
-    options: ['คะ', 'ค่ะ', 'ครับ', 'จ๊ะ'],
-    correctAnswerIndex: 0,
-    phonetic: '/khá/',
-    myanmarReading: 'ခ',
-    explanation: "အမျိုးသမီးများ မေးခွန်းမေးရာတွင် 'คะ' (ခ /khá/) ကို သုံးပြီး၊ ဖြေကြားရာတွင် 'ค่ะ' (ခါ့ /khâ/) ကို သုံးပါသည်။",
-  },
-  {
-    id: 9,
-    promptLabel: 'အငြင်းဝါကျ (မ...ဘူး) ဖွဲ့စည်းရာတွင် ကိရိယာရှေ့၌ မည်သည့်စကားလုံး ထည့်ရသနည်း?',
-    thaiWord: 'မ...ဘူး (အငြင်းစကားလုံး)',
-    audioTarget: 'ไม่',
-    options: ['ไหม', 'อะไร', 'ไม่', 'ได้'],
-    correctAnswerIndex: 2,
-    phonetic: '/mây/',
-    myanmarReading: 'မိုက်',
-    explanation: "ကိရိယာရှေ့တွင် 'ไม่' (မိုက် /mây/ = မ...ဘူး) ထည့်သွင်း၍ အငြင်းဝါကျ ဖွဲ့စည်းပါသည်။",
-  },
-  {
-    id: 10,
-    promptLabel: "'ဘာလဲ' (What) ဟု မေးခွန်းမေးရာတွင် ထည့်သွင်းရသော စကားလုံးမှာ?",
-    thaiWord: 'ဘာလဲ (What)',
-    audioTarget: 'อะไร',
-    options: ['อะไร', 'ไหม', 'ใคร', 'ไหน'],
-    correctAnswerIndex: 0,
-    phonetic: '/ʔa-ray/',
-    myanmarReading: 'အာရိုင်',
-    explanation: "'อะไร' (အာရိုင် /ʔa-ray/) ဆိုသည်မှာ 'ဘာလဲ / What' ဖြစ်ပါသည်။",
-  },
-  {
-    id: 11,
-    promptLabel: "'ကျွန်တော် ဗီဇာ မရဘူး' ဟူသော စကားကို ထိုင်းလို မည်သို့ပြောမည်နည်း?",
-    thaiWord: 'ကျွန်တော် ဗီဇာ မရဘူး',
-    audioTarget: 'ผมไม่ได้วีซ่า',
-    options: ['ผมได้วีซ่า', 'ผมไม่ได้วีซ่า', 'ผมเอาวีซ่า', 'ผมมีวีซ่า'],
-    correctAnswerIndex: 1,
-    phonetic: '/phǒm mây dâay wii-sâa/',
-    myanmarReading: 'ဖုန် မိုက်ဒိုက် ဝီဆာ',
-    explanation: 'ผม (ကျွန်တော်) + ไม่ได้ (မရဘူး) + วีซ่า (ဗီဇာ) = ผมไม่ได้วีซ่า ဖြစ်ပါသည်။',
-  },
-  {
-    id: 12,
-    promptLabel: 'အောက်ပါ ထိုင်းအစားအစာ၏ မြန်မာအမည်မှာ အဘယ်နည်း?',
-    thaiWord: 'ส้มตำ',
-    audioTarget: 'ส้มตำ',
-    options: ['ခေါက်ဆွဲကြော်', 'သင်္ဘောသီးထောင်း', 'ကြက်ကြော်', 'ထမင်းကြော်'],
-    correctAnswerIndex: 1,
-    phonetic: '/sôm-tam/',
-    myanmarReading: 'စုံ(မ်)တမ်(မ်)',
-    explanation: "'ส้มตำ' (စုံတမ် /sôm-tam/) ဆိုသည်မှာ ထိုင်းနာမည်ကြီး 'သင်္ဘောသီးထောင်း' ဖြစ်ပါသည်။",
-  },
-  {
-    id: 13,
-    promptLabel: "'ขอบคุณ' နှင့် 'ขอโทษ' တို့၏ မြန်မာအဓိပ္ပာယ် အစဉ်လိုက်မှာ?",
-    thaiWord: 'ขอบคุณ - ขอโทษ',
-    audioTarget: 'ขอบคุณ ขอโทษ',
-    options: [
-      'တောင်းပန်ပါတယ် နှင့် ကျေးဇူးတင်ပါတယ်',
-      'ကျေးဇူးတင်ပါတယ် နှင့် တောင်းပန်ပါတယ်',
-      'မင်္ဂလာပါ နှင့် နှုတ်ဆက်ပါတယ်',
-      'ဟုတ်ကဲ့ နှင့် မဟုတ်ပါ',
-    ],
-    correctAnswerIndex: 1,
-    phonetic: '/khɔ̀ɔp-khun - khɔ̌ɔ-thôot/',
-    myanmarReading: 'ခော့(ပ်)ခွန် - ခေါ်ထိုးတ်',
-    explanation: 'ขอบคุณ = ကျေးဇူးတင်ပါတယ်၊ ขอโทษ = တောင်းပန်ပါတယ် ဖြစ်ပါသည်။',
-  },
-  {
-    id: 14,
-    promptLabel: "'သူ ဒီဟာကို ကြိုက်တယ်' ဟူသော စာကြောင်း၏ ထိုင်းဝါကျမှာ အဘယ်နည်း?",
-    thaiWord: 'သူ ဒီဟာကို ကြိုက်တယ်',
-    audioTarget: 'เขาชอบอันนี้',
-    options: ['เขาไม่ชอบอันนี้', 'เขาชอบอันนี้', 'เขาเอาอันนี้', 'เขามีอันนี้'],
-    correctAnswerIndex: 1,
-    phonetic: '/kháo chɔ̂ɔp ʔan-níi/',
-    myanmarReading: 'ခေါဝ် ချော့ပ် အန်နီး',
-    explanation: 'เขา (သူ) + ชอบ (ကြိုက်သည်) + อันนี้ (ဒီတစ်ခု/ဒီဟာ) ဖြစ်ပါသည်။',
-  },
-  {
-    id: 15,
-    promptLabel: "'สบายดีไหม' ဟု မေးလာပါက 'နေကောင်းပါတယ်' ဟု မည်သို့ပြန်ဖြေမည်နည်း?",
-    thaiWord: 'နေကောင်းပါတယ် (ဖြေကြားချက်)',
-    audioTarget: 'สบายดีครับ',
-    options: ['สบายดีครับ / ค่ะ', 'ไม่สบายครับ / ค่ะ', 'ขอบคุณครับ / ค่ะ', 'ไม่เป็นไรครับ / ค่ะ'],
-    correctAnswerIndex: 0,
-    phonetic: '/sà-baay-dii khráp / khâ/',
-    myanmarReading: 'စဘိုင်းဒီး ခရတ် / ခါ့',
-    explanation: 'สบายดี (နေကောင်းသည်) + ครับ/ค่ะ (ခင်ဗျာ/ရှင်) ဖြစ်ပါသည်။',
-  },
-  {
-    id: 16,
-    promptLabel: 'အောက်ပါ နာမ်စား၏ မြန်မာအဓိပ္ပာယ်မှာ အဘယ်နည်း?',
-    thaiWord: 'เรา',
-    audioTarget: 'เรา',
-    options: ['သူ / သူမ', 'ကျွန်ုပ်တို့ / ငါတို့ / တို့', 'သင် / မင်း', '၎င်းတို့ / သူတို့'],
-    correctAnswerIndex: 1,
-    phonetic: '/raw/',
-    myanmarReading: 'ရောဝ်(ဝ်)',
-    explanation: "'เรา' (ရောဝ် /raw/) သည် 'ကျွန်ုပ်တို့ / ငါတို့ / တို့ (We)' ဖြစ်ပါသည်။",
-  },
-  {
-    id: 17,
-    promptLabel: "'အင်္ကျီ' ကို ထိုင်းဘာသာဖြင့် မည်သို့ခေါ်သနည်း?",
-    thaiWord: 'အင်္ကျီ (Shirt)',
-    audioTarget: 'เสื้อ',
-    options: ['กางเกง', 'เสื้อ', 'นาฬิกา', 'น้ำ'],
-    correctAnswerIndex: 1,
-    phonetic: '/sʉ̂a/',
-    myanmarReading: 'စွတ်အာ',
-    explanation: "အင်္ကျီ ကို 'เสื้อ' (စွတ်အာ /sʉ̂a/) ဟု ခေါ်ပြီး၊ 'กางเกง' မှာ ဘောင်းဘီ ဖြစ်ပါသည်။",
-  },
-  {
-    id: 18,
-    promptLabel: "'သွားလိုက်ပါဦးမယ်နော်' ဟု ယဉ်ကျေးစွာ နှုတ်ဆက်လိုလျှင် မည်သို့ပြောရမည်နည်း?",
-    thaiWord: 'သွားလိုက်ပါဦးမယ်နော်',
-    audioTarget: 'ไปก่อนนะครับ',
-    options: ['ไปก่อนนะครับ / นะคะ', 'ไม่ไปครับ / ค่ะ', 'ไปไหนครับ / คะ', 'เจอกันครับ / ค่ะ'],
-    correctAnswerIndex: 0,
-    phonetic: '/pay kɔ̀ɔn ná khráp / ná khâ/',
-    myanmarReading: 'ပိုင်ဂွန်း န ခရတ် / န ခါ့',
-    explanation: "'ไปก่อนนะครับ / นะคะ' (ပိုင်ဂွန်း န ခရတ်/ခါ့) ဆိုသည်မှာ 'သွားလိုက်ပါဦးမယ်နော်' ဖြစ်ပါသည်။",
-  },
-  {
-    id: 19,
-    promptLabel: "'မင်းပြောတာ အရမ်းမြန်တယ်' ဟူသော ဝါကျမှာ အဘယ်နည်း?",
-    thaiWord: 'မင်းပြောတာ အရမ်းမြန်တယ်',
-    audioTarget: 'คุณพูดเร็วมาก',
-    options: ['คุณพูดช้ามาก', 'คุณพูดเร็วมาก', 'คุณฟังไม่ทัน', 'คุณไม่เข้าใจ'],
-    correctAnswerIndex: 1,
-    phonetic: '/khun phûut rew mâak/',
-    myanmarReading: 'ခွန် ဖူးတ် ရေဝ် မာ့က်',
-    explanation: 'คุณ (မင်း/သင်) + พูด (ပြောသည်) + เร็วมาก (အရမ်းမြန်တယ်) ဖြစ်ပါသည်။',
-  },
-  {
-    id: 20,
-    promptLabel: "ဝါကျအဆုံးတွင် ဟုတ်/မဟုတ် မေးလိုပါက '...လား' အဓိပ္ပာယ်ဖြင့် မည်သည့်စကားလုံး ထည့်ရသနည်း?",
-    thaiWord: '...လား? (မေးခွန်းစကားလုံး)',
-    audioTarget: 'ไหม',
-    options: ['อะไร', 'ไหม', 'หรือ', 'นะ'],
-    correctAnswerIndex: 1,
-    phonetic: '/máy/',
-    myanmarReading: 'မိုင်း',
-    explanation: "ဝါကျအဆုံးတွင် 'ไหม' (မိုင်း /máy/) ကို ထည့်သွင်း၍ '...လား' မေးခွန်း ဖွဲ့စည်းပါသည်။",
-  },
-];
+export type CleanQuizQuestion = QuizQuestion;
+export const ACTIVE_RECALL_QUIZ_QUESTIONS = QUIZ_QUESTIONS;
 
 export interface QuizViewProps {
   speechRate?: number;
@@ -253,7 +17,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ speechRate = 0.85 }) => {
   const [isFinished, setIsFinished] = useState<boolean>(false);
   const [srFeedback, setSrFeedback] = useState<string>('');
 
-  const questions = ACTIVE_RECALL_QUIZ_QUESTIONS;
+  const questions = QUIZ_QUESTIONS;
   const currentQuestion = questions[currentIndex];
   const progressPercent = Math.round(((currentIndex + 1) / questions.length) * 100);
 
@@ -304,7 +68,6 @@ export const QuizView: React.FC<QuizViewProps> = ({ speechRate = 0.85 }) => {
   // 1, 2, 3, 4 or a, b, c, d to pick choices; Space or Enter to proceed to next question
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing inside input / textarea
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
@@ -368,7 +131,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ speechRate = 0.85 }) => {
             </h2>
           </div>
           <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">
-            Active Recall နည်းလမ်းဖြင့် အသံထွက်နှင့် အဓိပ္ပာယ်ကို စစ်ဆေးလေ့ကျင့်ပါ
+            ဖတ်စာအုပ်ပါ အသံထွက်၊ အသတ်သံများနှင့် အဓိပ္ပာယ်ကို လေ့ကျင့်ဖြေဆိုပါ
           </p>
         </div>
 
@@ -398,45 +161,68 @@ export const QuizView: React.FC<QuizViewProps> = ({ speechRate = 0.85 }) => {
             </div>
           </div>
 
-          {/* 1. REMOVE PREMATURE SPOILERS IN UNANSWERED STATE:
-              Only prominent Thai word as question prompt, no phonetics/reading/audio before answer */}
-          <div className="text-center py-6">
-            <span className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 font-semibold mb-2 block">
-              {currentQuestion.promptLabel}
+          {/* 1. QUESTION CARD: THAI WORD + PHONETIC + MYANMAR READING */}
+          <div className="text-center py-6 px-4 bg-purple-50/50 dark:bg-purple-950/20 rounded-3xl border border-purple-100 dark:border-purple-900/40 mb-6">
+            <span
+              className="text-xs uppercase tracking-wider font-semibold text-purple-600 dark:text-purple-400 mb-2 block"
+              lang="my"
+            >
+              အောက်ပါ ထိုင်းစကားလုံး၏ မှန်ကန်သော မြန်မာအဓိပ္ပာယ်ကို ရွေးချယ်ပါ
             </span>
+
+            {/* Prominent Thai Word */}
             <h2
-              className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white tracking-wide font-sans"
+              className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white tracking-wide mb-3 font-sans"
               lang="th"
             >
               {currentQuestion.thaiWord}
             </h2>
-            <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-2 font-mono">
+
+            {/* Book-standard Phonetic & Myanmar Reading Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white dark:bg-gray-800 border border-purple-200/80 dark:border-purple-800/60 shadow-xs">
+              <span
+                className="font-mono text-sm sm:text-base font-bold text-purple-700 dark:text-purple-300"
+                lang="en"
+              >
+                {currentQuestion.phonetic}
+              </span>
+              <span
+                className="text-sm sm:text-base text-gray-700 dark:text-gray-300 font-medium"
+                lang="my"
+              >
+                ({currentQuestion.myanmarReading})
+              </span>
+              {/* Audio pronounce button */}
+              <button
+                type="button"
+                onClick={() => playAudio(currentQuestion.audioTarget || currentQuestion.thaiWord)}
+                aria-label={`Listen to ${currentQuestion.thaiWord}`}
+                className="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-900/60 hover:bg-purple-200 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xs transition-transform active:scale-95 ml-1"
+              >
+                🔊
+              </button>
+            </div>
+
+            <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-3 font-mono">
               [ကီးဘုတ်ဖြတ်လမ်း: 1, 2, 3, 4 သို့မဟုတ် A, B, C, D ဖြင့် ရွေးချယ်နိုင်ပါသည်]
             </p>
           </div>
 
-          {/* 2. CLEAN, MINIMAL OPTIONS (NO SPOILERS IN CHOICES) */}
+          {/* 2. CLEAN OPTIONS & HIGH-CONTRAST AMBER/YELLOW THEME */}
           <div
             role="radiogroup"
             aria-label="ရွေးချယ်စရာ အဖြေများ"
-            className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-3.5"
           >
             {currentQuestion.options.map((optText, idx) => {
               const isSelected = selectedAnswer === idx;
-              const isRevealed = selectedAnswer !== null;
 
-              // Base unselected state
               let btnStyle =
-                'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:border-amber-400 hover:bg-amber-50/50 dark:hover:bg-gray-700/60';
+                'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:border-amber-400 hover:bg-amber-50/40 dark:hover:bg-gray-700/60';
 
-              // Selected state: Warm Yellow (Amber) with dark text for perfect contrast
               if (isSelected) {
                 btnStyle =
                   'bg-amber-400 dark:bg-amber-500 text-gray-950 border-amber-500 dark:border-amber-400 font-bold shadow-md ring-2 ring-amber-400/50 scale-[1.01]';
-              } else if (isRevealed) {
-                // Muted unselected options after an answer is chosen
-                btnStyle =
-                  'bg-gray-50 dark:bg-gray-900/60 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-800 opacity-60';
               }
 
               return (
@@ -445,9 +231,8 @@ export const QuizView: React.FC<QuizViewProps> = ({ speechRate = 0.85 }) => {
                   type="button"
                   role="radio"
                   aria-checked={isSelected}
-                  disabled={isRevealed}
                   onClick={() => handleSelectOption(idx)}
-                  className={`w-full p-4 rounded-2xl border-2 text-left text-base sm:text-lg font-medium transition-all duration-200 flex items-center justify-between min-h-[60px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${btnStyle}`}
+                  className={`w-full p-4 rounded-2xl border-2 text-left text-base sm:text-lg font-medium transition-all duration-200 flex items-center justify-between min-h-[62px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${btnStyle}`}
                 >
                   <div className="flex items-center gap-3">
                     <span
@@ -462,9 +247,8 @@ export const QuizView: React.FC<QuizViewProps> = ({ speechRate = 0.85 }) => {
                     <span lang="my">{optText}</span>
                   </div>
 
-                  {/* Selected check indicator in yellow theme */}
                   {isSelected && (
-                    <span className="w-6 h-6 rounded-full bg-gray-950 text-amber-400 flex items-center justify-center text-xs font-bold shadow-xs">
+                    <span className="w-6 h-6 rounded-full bg-gray-950 text-amber-400 flex items-center justify-center text-xs font-bold">
                       ✓
                     </span>
                   )}
@@ -473,32 +257,32 @@ export const QuizView: React.FC<QuizViewProps> = ({ speechRate = 0.85 }) => {
             })}
           </div>
 
-          {/* 3. POST-ANSWER REVELATION (EDUCATIONAL FEEDBACK PANEL) */}
+          {/* 3. POST-ANSWER EXPLANATION PANEL */}
           {selectedAnswer !== null && (
             <div className="mt-5 p-4 sm:p-5 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/50 animate-fadeIn space-y-3 shadow-xs">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded-full">
-                    အသံထွက်
-                  </span>
-                  <span className="font-mono text-sm text-purple-900 dark:text-purple-200 font-bold">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100/80 dark:bg-purple-900/40 border border-purple-200 dark:border-purple-800 text-sm">
+                  <span className="font-mono font-bold text-purple-700 dark:text-purple-300" lang="en">
                     {currentQuestion.phonetic}
                   </span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400" lang="my">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium" lang="my">
                     ({currentQuestion.myanmarReading})
                   </span>
                 </div>
 
-                {/* Authentic Audio Button only appears AFTER answer is chosen */}
-                <button
-                  type="button"
-                  onClick={() => playAudio(currentQuestion.audioTarget || currentQuestion.thaiWord)}
-                  aria-label={`Listen to ${currentQuestion.thaiWord}`}
-                  className="px-3 py-1.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-transform active:scale-95 shadow-sm"
-                >
-                  <span>🔊</span>
-                  <span>အသံထွက် နားထောင်မည်</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`px-3 py-1 text-xs font-bold rounded-full ${
+                      selectedAnswer === currentQuestion.correctAnswerIndex
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-amber-600 text-white'
+                    }`}
+                  >
+                    {selectedAnswer === currentQuestion.correctAnswerIndex
+                      ? '✓ အဖြေမှန်ပါသည်'
+                      : `မှန်ကန်သောအဖြေ: ${currentQuestion.options[currentQuestion.correctAnswerIndex]}`}
+                  </span>
+                </div>
               </div>
 
               {currentQuestion.explanation && (
