@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Volume2, Gauge } from 'lucide-react';
 import { TabType } from '../types';
 import { APP_LOGO_URL } from '../data/thaiData';
@@ -25,6 +25,38 @@ export const Header: React.FC<HeaderProps> = ({
   isDarkMode,
   onToggleDarkMode,
 }) => {
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstallable, setIsInstallable] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Detect if app is already running as standalone PWA
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstallable(false);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setIsInstallable(false);
+    }
+    setDeferredPrompt(null);
+  };
+
   const handleTestAudio = () => {
     speakThai('สวัสดีครับ ยินดีต้อนรับครับ', speechRate);
   };
@@ -96,6 +128,19 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             ))}
           </div>
+
+          {/* PWA INSTALL BUTTON */}
+          {isInstallable && (
+            <button
+              type="button"
+              onClick={handleInstallClick}
+              aria-label="Install App to Home Screen"
+              className="px-2.5 py-1 text-xs font-bold rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-xs flex items-center gap-1 transition-transform active:scale-95 animate-pulse"
+            >
+              <span>📲</span>
+              <span className="hidden sm:inline" lang="my">App ထည့်သွင်းမည်</span>
+            </button>
+          )}
 
           {/* DAY / NIGHT MODE (THEME TOGGLE BUTTON) */}
           <button
